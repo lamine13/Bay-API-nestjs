@@ -31,14 +31,14 @@ export class AdminService {
 
   async findOne(id: string): Promise<Admin> {
     try {
-      const findOneUser = await this.adminModel.findById(id);
+      const findOneUser = await this.adminModel.findById(id).exec();
       return findOneUser;
     } catch (error) {
       throw new Error(error);
     }
   }
 
-  async update(id: number, updateAdminDto: UpdateAdminDto): Promise<Admin> {
+  async update(id: string, updateAdminDto: UpdateAdminDto): Promise<Admin> {
     try {
       const findUserUpdate = await this.adminModel.findByIdAndUpdate(
         id,
@@ -51,7 +51,7 @@ export class AdminService {
     }
   }
 
-  async remove(id: number): Promise<Admin> {
+  async remove(id: string): Promise<Admin> {
     try {
       const roleDelete = this.adminModel.findByIdAndDelete(id, { new: true });
       return roleDelete;

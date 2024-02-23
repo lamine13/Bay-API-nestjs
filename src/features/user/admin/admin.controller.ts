@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  Put,
 } from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { CreateAdminDto, UpdateAdminDto } from './dto/admin.dto';
@@ -13,9 +14,6 @@ import { ResponseBody } from 'src/utils/response-body';
 import { Admin } from './entities/admin.entity';
 import { ResponseData } from '../../../utils/response-body';
 import { RoleService } from '../role/role.service';
-import { InjectModel } from '@nestjs/mongoose';
-import { Role } from '../role/entities/role.entity';
-import { Model } from 'mongoose';
 import { log } from 'console';
 
 @Controller('users/admins')
@@ -23,7 +21,6 @@ export class AdminController {
   constructor(
     private readonly adminService: AdminService,
     private readonly roleService: RoleService,
-
   ) {}
 
   @Post()
@@ -48,7 +45,7 @@ export class AdminController {
       }
 
       const role = await this.roleService.findOne(createAdminDto.role);
-      log(createAdminDto.role)
+      log(createAdminDto.role);
       if (!role) {
         return ResponseBody.notFound(`Ce role n'existe pas !`);
       }
@@ -70,34 +67,93 @@ export class AdminController {
   }
 
   @Get()
-  async findAll() :Promise<ResponseBody> {
-try {
-  const admins = await this.adminService.findAll();
-  return ResponseBody.success({
-    data: admins,
-    message: `les utilisateurs ont ete cree avec succes`,
-  });
-} catch (error) {
-  return ResponseBody.error(
-    error,
-    "Erreur de la recuperation des utilisateurs",
-  );
-}
+  async findAll(): Promise<ResponseBody> {
+    try {
+      const admins = await this.adminService.findAll();
+      return ResponseBody.success({
+        data: admins,
+        message: `les utilisateurs ont ete cree avec succes`,
+      });
+    } catch (error) {
+      return ResponseBody.error(
+        error,
+        'Erreur de la recuperation des utilisateurs',
+      );
+    }
     return this.adminService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.adminService.findOne(id);
+  async findOne(@Param('id') id: string): Promise<ResponseBody> {
+    try {
+      const admin = this.adminService.findOne(id);
+      return ResponseBody.success({
+        data: admin,
+        message: `les utilisateurs ont ete cree avec succes`,
+      });
+    } catch (error) {
+      return ResponseBody.error(
+        error,
+        'Erreur de la recuperation de utilisateur',
+      );
+    }
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateAdminDto: UpdateAdminDto) {
-    return this.adminService.update(+id, updateAdminDto);
+  @Put(':id')
+  async update(
+    @Param('id') id: string,
+    @Body() updateAdminDto: UpdateAdminDto,
+  ): Promise<ResponseBody> {
+    try {
+      const adminExist = await this.adminService.findOne(id);
+      // console.log(adminExist);
+
+      if (adminExist) {
+        return ResponseBody.notFound(`Cet utilisateur n'existe pas`);
+      }
+      const { email } = updateAdminDto;
+
+      const adminExistEmail = await this.adminService.findAdminByEmail(email);
+      console.log(adminExistEmail);
+
+      if (adminExistEmail) {
+        return ResponseBody.conflict(`Cet email existe deja`);
+      }
+      const newAdmin: Admin = await this.adminService.update(
+        id,
+        updateAdminDto,
+      );
+      return ResponseBody.success({
+        data: newAdmin,
+        message: `l'utisateur ${email} a ete MAJ avec succes`,
+      });
+    } catch (error) {
+      return ResponseBody.error(
+        error,
+        "Erreur de la mAJ de l'utilisateur admin",
+      );
+    }
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.adminService.remove(+id);
+  async remove(@Param('id') id: string): Promise<ResponseBody> {
+    try {
+      const adminExist = await this.adminService.findOne(id);
+      if (adminExist) {
+        const deleteAdmin = await this.adminService.remove(id);
+        return ResponseBody.success({
+          data: deleteAdmin,
+          message: `L'utilisateur admin a ete supprime avec succes  :) `,
+        });
+      }
+      return ResponseBody.notFound(
+        `Ce utilisateur n'existe pas dans la base de donnees :( `,
+      );
+    } catch (error) {
+      return ResponseBody.error(
+        error,
+        "Erreur de suppression  de l'utilisateur admin",
+      );
+    }
   }
 }

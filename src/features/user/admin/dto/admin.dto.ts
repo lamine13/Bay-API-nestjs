@@ -49,44 +49,44 @@ export class CreateAdminDto {
 export class UpdateAdminDto {
   @IsString({ message: 'le nom  doit etre une chaine de caracteres' })
   @IsNotEmpty({ message: 'le nom est requis' })
-  name: string;
+  readonly name: string;
 
   @IsString({ message: 'le prenom doit etre une chaine de caracteres' })
   @IsNotEmpty({ message: 'le prenom est requis' })
-  firstName: string;
+  readonly firstName: string;
 
   @IsString({ message: 'le matricule doit etre une chaine de caracteres' })
   @IsNotEmpty({ message: 'le matricule est requis' })
-  matricule: string;
+  readonly matricule: string;
 
   @IsString({ message: 'le mot de passe doit etre une chaine de caracteres' })
   @IsNotEmpty({ message: "le mot de passe de l'utilisateur est requis" })
-  password: string;
+  readonly password: string;
 
   @IsString({ message: 'le token doit etre une chaine de caracteres' })
-  token: string;
+  readonly token: string;
 
   @IsString({ message: "l'email doit etre une chaine de caracteres" })
   @IsNotEmpty({ message: "l'email est requis" })
   @IsEmail()
-  email: string;
+  readonly email: string;
 
   @IsString({ message: 'le statut doit etre une chaine de caracteres' })
   @IsNotEmpty({ message: 'le statut est requis' })
-  status: boolean;
+  readonly status: boolean;
 
   @IsString({ message: "l'identifiant doit etre une chaine de caracteres" })
-  identify: string;
+  readonly identify: string;
 
   @IsString({ message: "l'url de l'image doit etre une chaine de caracteres" })
-  avatar: string;
+  readonly avatar?: string;
 
   @IsString({ message: 'le telephone doit etre une chaine de caracteres' })
   @IsNotEmpty({ message: 'le telephone est requis' })
-  tel: string;
+  readonly tel: string;
 
   @IsNotEmpty({ message: "le role de l'utilisateur est requis " })
-  role: Role;
+  readonly role: string;
 }
 export class AdminFields {
   name: string;

@@ -106,25 +106,23 @@ export class AdminController {
   ): Promise<ResponseBody> {
     try {
       const adminExist = await this.adminService.findOne(id);
-      // console.log(adminExist);
-
-      if (adminExist) {
+      if (!adminExist) {
         return ResponseBody.notFound(`Cet utilisateur n'existe pas`);
       }
+
       const { email } = updateAdminDto;
-
       const adminExistEmail = await this.adminService.findAdminByEmail(email);
-      console.log(adminExistEmail);
-
       if (adminExistEmail) {
         return ResponseBody.conflict(`Cet email existe deja`);
       }
-      const newAdmin: Admin = await this.adminService.update(
+
+      const updateAdmin: Admin = await this.adminService.update(
         id,
         updateAdminDto,
       );
+      console.log(updateAdmin)
       return ResponseBody.success({
-        data: newAdmin,
+        data: updateAdmin,
         message: `l'utisateur ${email} a ete MAJ avec succes`,
       });
     } catch (error) {

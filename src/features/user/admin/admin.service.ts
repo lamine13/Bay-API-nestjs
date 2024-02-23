@@ -38,7 +38,7 @@ export class AdminService {
     }
   }
 
-  async update(id: string, updateAdminDto: UpdateAdminDto): Promise<Admin> {
+  async update(id: string, updateAdminDto: UpdateAdminDto): Promise<Admin | null> {
     try {
       const findUserUpdate = await this.adminModel.findByIdAndUpdate(
         id,

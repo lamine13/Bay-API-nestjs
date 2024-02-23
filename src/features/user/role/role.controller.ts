@@ -3,51 +3,35 @@ import {
   Get,
   Post,
   Body,
-  Patch,
   Param,
   Delete,
-  HttpStatus,
-  ConflictException,
   Put,
 } from '@nestjs/common';
 import { RoleService } from './role.service';
 import { CreateRoleDto, RoleFields } from './dto/role.dto';
 import { UpdateRoleDto } from './dto/role.dto';
 import { Role } from './entities/role.entity';
+import { ResponseBody, ResponseData } from 'src/utils/response-body';
 
 @Controller('role')
 export class RoleController {
   constructor(private readonly roleService: RoleService) {}
 
   @Post()
-  async create(
-    @Body() createRoleDto: CreateRoleDto,
-  ): Promise<{ message: string; status: number; data?: Role }> {
+  async create(@Body() createRoleDto: CreateRoleDto): Promise<ResponseData> {
     try {
       const { name } = createRoleDto;
       const roleExist = await this.roleService.findRoleByName(name);
       if (roleExist) {
-        return {
-          message: `Le role ${name} existe deja `,
-          status: HttpStatus.CONFLICT,
-        };
+        return ResponseBody.conflict(`Le role ${name} existe deja `);
       }
       const newRole: Role = await this.roleService.create(createRoleDto);
-      return {
-        message: `le role ${name} a ete cree avec succes`,
-        status: HttpStatus.CREATED,
+      return ResponseBody.success({
         data: newRole,
-      };
+        message: `le role ${name} a ete cree avec succes`,
+      });
     } catch (error) {
-      const errorMessage =
-        error instanceof ConflictException
-          ? (error.getResponse() as { message: string }).message
-          : error.message.replace(/^ConflictException: /, '') ||
-            "Erreur lors de la creation d'un role";
-      return {
-        message: errorMessage,
-        status: HttpStatus.INTERNAL_SERVER_ERROR,
-      };
+      return ResponseBody.error(error, "Erreur lors de la creation d'un role");
     }
   }
 
@@ -60,51 +44,34 @@ export class RoleController {
     try {
       const roles = await this.roleService.findAll();
       const responses = roles.map((role) => new RoleFields(role));
-      return {
-        message: `La liste des roles recuperer avec succes`,
-        status: HttpStatus.OK,
+      return ResponseBody.success({
         data: responses,
-      };
+        message: `La liste des roles recuperer avec succes`,
+      });
     } catch (error) {
-      const errorMessage =
-        error instanceof ConflictException
-          ? (error.getResponse() as { message: string }).message
-          : error.message.replace(/^ConflictException: /, '') ||
-            'Erreur lors de la recuperation des roles';
-      return {
-        message: errorMessage,
-        status: HttpStatus.INTERNAL_SERVER_ERROR,
-      };
+      return ResponseBody.error(
+        error,
+        'Erreur lors de la recuperation des roles',
+      );
     }
   }
 
   @Get(':id')
-  async findOne(
-    @Param('id') id: string,
-  ): Promise<{ message: string; status: number; data?: RoleFields | null }> {
+  async findOne(@Param('id') id: string): Promise<ResponseData> {
     try {
       const role = await this.roleService.findOne(id);
       if (role) {
-        return {
-          message: `details role ${role.name}`,
-          status: HttpStatus.OK,
+        return ResponseBody.success({
           data: new RoleFields(role),
-        };
+          message: `details role ${role.name}`,
+        });
       }
-      return {
-        message: `le role ${id} n'existe pas`,
-        status: HttpStatus.NOT_FOUND,
-      };
+      return ResponseBody.notFound(`le role ${id} n'existe pas`);
     } catch (error) {
-      const errorMessage =
-        error instanceof ConflictException
-          ? (error.getResponse() as { message: string }).message
-          : error.message.replace(/^ConflictException: /, '') ||
-            'Erreur lors de la recuperation du role';
-      return {
-        message: errorMessage,
-        status: HttpStatus.INTERNAL_SERVER_ERROR,
-      };
+      return ResponseBody.error(
+        error,
+        "Erreur lors de la recuperation d'un role",
+      );
     }
   }
 
@@ -112,75 +79,49 @@ export class RoleController {
   async update(
     @Param('id') id: string,
     @Body() updateRoleDto: UpdateRoleDto,
-  ): Promise<{ message: string; status: number; data?: RoleFields | null }> {
+  ): Promise<ResponseData> {
     try {
       const roleExist = await this.roleService.findOne(id);
       if (!roleExist) {
-        return {
-          message: `Le role ${id} n'existe pas `,
-          status: HttpStatus.NOT_FOUND,
-        };
+        return ResponseBody.notFound(`le role ${id} n'existe pas`);
       }
       const { name } = updateRoleDto;
 
       const roleExistName = await this.roleService.findRoleByName(name);
 
       if (roleExistName) {
-        
-          return {
-            message: `Le nom du role existe deja `,
-            status: HttpStatus.CONFLICT,
-          };
-        
+        return ResponseBody.conflict(`le role ${id} n'existe deja`);
       }
       const newRole: Role = await this.roleService.update(id, updateRoleDto);
-      return {
-        message: `le role ${name} a ete MAJ avec succes`,
-        status: HttpStatus.OK,
+      return ResponseBody.success({
         data: newRole,
-      };
+        message: `le role ${name} a ete MAJ avec succes`,
+      });
     } catch (error) {
-      const errorMessage =
-        error instanceof ConflictException
-          ? (error.getResponse() as { message: string }).message
-          : error.message.replace(/^ConflictException: /, '') ||
-            'Erreur lors de la mise a jour du role';
-      return {
-        message: errorMessage,
-        status: HttpStatus.INTERNAL_SERVER_ERROR,
-      };
+      return ResponseBody.error(error, 'Erreur lors de la mise a jour du role');
     }
   }
 
   @Delete(':id')
-  async remove(
-    @Param('id') id: string,
-  ): Promise<{ message: string; statut: number; data?: RoleFields }> {
+  async remove(@Param('id') id: string): Promise<ResponseData> {
     try {
       const roleExist = await this.roleService.findOne(id);
       if (roleExist) {
         const deleteRole = await this.roleService.remove(id);
 
-        return {
-          message: `Le role a ete supprime avec succes  :) `,
-          statut: HttpStatus.OK,
+        return ResponseBody.success({
           data: deleteRole,
-        };
+          message: `Le role a ete supprime avec succes  :) `,
+        });
       }
-      return {
-        message: `Ce role n'existe pas dans la base de donnees :( `,
-        statut: HttpStatus.NOT_FOUND,
-      };
+      return ResponseBody.notFound(
+        `Ce role n'existe pas dans la base de donnees :( `,
+      );
     } catch (error) {
-      const errorMessage =
-        error instanceof ConflictException
-          ? (error.getResponse() as { message: string }).message
-          : error.message.replace(/^ConflictException: /, '') ||
-            'Erreur lors de la suppression du role ! ';
-      return {
-        message: errorMessage,
-        statut: HttpStatus.INTERNAL_SERVER_ERROR,
-      };
+      return ResponseBody.error(
+        error,
+        'Erreur lors de la suppression du role ! ',
+      );
     }
   }
 }

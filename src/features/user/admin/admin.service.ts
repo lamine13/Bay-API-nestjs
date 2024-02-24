@@ -29,7 +29,7 @@ export class AdminService {
     }
   }
 
-  async findOne(id: string): Promise<Admin> {
+  async findOne(id: string): Promise<Admin | null> {
     try {
       const findOneUser = await this.adminModel.findById(id).exec();
       return findOneUser;
@@ -61,7 +61,7 @@ export class AdminService {
   }
   async findAdminByEmail(email: string): Promise<Admin | null> {
     try {
-      return await this.adminModel.findOne({ email }).exec();
+      return  this.adminModel.findOne({email}).exec();
     } catch (error) {
       throw new Error(error);
     }

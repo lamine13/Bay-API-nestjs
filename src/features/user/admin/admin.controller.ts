@@ -45,7 +45,6 @@ export class AdminController {
       }
 
       const role = await this.roleService.findOne(createAdminDto.role);
-      log(createAdminDto.role);
       if (!role) {
         return ResponseBody.notFound(`Ce role n'existe pas !`);
       }
@@ -112,6 +111,8 @@ export class AdminController {
 
       const { email } = updateAdminDto;
       const adminExistEmail = await this.adminService.findAdminByEmail(email);
+      console.log(!adminExistEmail);
+
       if (adminExistEmail) {
         return ResponseBody.conflict(`Cet email existe deja`);
       }
@@ -120,7 +121,6 @@ export class AdminController {
         id,
         updateAdminDto,
       );
-      console.log(updateAdmin)
       return ResponseBody.success({
         data: updateAdmin,
         message: `l'utisateur ${email} a ete MAJ avec succes`,

@@ -9,51 +9,53 @@ import {
   Put,
 } from '@nestjs/common';
 import { AdminService } from './admin.service';
-import { CreateAdminDto, UpdateAdminDto } from './dto/admin.dto';
+import { AdminFields, CreateAdminDto, UpdateAdminDto } from './dto/admin.dto';
 import { ResponseBody } from 'src/utils/response-body';
 import { Admin } from './entities/admin.entity';
 import { ResponseData } from '../../../utils/response-body';
 import { RoleService } from '../role/role.service';
-import { log } from 'console';
+import { GenerateCodeMatricule } from 'src/utils/generate/generate_matric';
 
 @Controller('users/admins')
 export class AdminController {
   constructor(
+    private readonly generateCodeMatricule: GenerateCodeMatricule,
     private readonly adminService: AdminService,
     private readonly roleService: RoleService,
   ) {}
 
-  @Post()
+  @Post('store')
   async create(@Body() createAdminDto: CreateAdminDto): Promise<ResponseData> {
     try {
-      const email = createAdminDto.email;
-      const tel = createAdminDto.tel;
-      const matricule = createAdminDto.matricule;
-      const userExisteEmail = await this.adminService.findAdminByEmail(email);
-      const userExisteTel = await this.adminService.findAdminByTel(tel);
-      const userExisteMaticule =
-        await this.adminService.findAdminByMat(matricule);
-
+      const userExisteTel = await this.adminService.findAdminByTel(
+        createAdminDto.tel,
+      );
       if (userExisteTel) {
         return ResponseBody.conflict(`Ce numero de telephone existe deja !`);
       }
+
+      const userExisteEmail = await this.adminService.findAdminByEmail(
+        createAdminDto.email,
+      );
       if (userExisteEmail) {
         return ResponseBody.conflict(`Cet email existe deja !`);
       }
-      if (userExisteMaticule) {
-        return ResponseBody.conflict(`Ce matricule existe deja !`);
-      }
 
-      const role = await this.roleService.findOne(createAdminDto.role);
+      const role = await this.roleService.findRoleByCode(createAdminDto.role);
       if (!role) {
         return ResponseBody.notFound(`Ce role n'existe pas !`);
       }
+
+      const matricul = this.generateCodeMatricule.generate('admin');
+
       const body = {
         ...createAdminDto,
         role: role._id,
+        matricule: matricul,
       };
       const newAdmin: Admin = await this.adminService.create(body);
-      return ResponseBody.success({
+
+      return ResponseBody.creation({
         data: newAdmin,
         message: `l'utilisateur ${createAdminDto.name} a ete cree avec succes`,
       });
@@ -66,11 +68,13 @@ export class AdminController {
   }
 
   @Get()
-  async findAll(): Promise<ResponseBody> {
+  async findAll(): Promise<ResponseData> {
     try {
-      const admins = await this.adminService.findAll();
+      const admins = await this.adminService.findAll();      
+      const responseData = admins.map((value) => new AdminFields(value));
+
       return ResponseBody.success({
-        data: admins,
+        data: responseData,
         message: `les utilisateurs ont ete cree avec succes`,
       });
     } catch (error) {
@@ -79,47 +83,62 @@ export class AdminController {
         'Erreur de la recuperation des utilisateurs',
       );
     }
-    return this.adminService.findAll();
   }
 
-  @Get(':id')
-  async findOne(@Param('id') id: string): Promise<ResponseBody> {
+  @Get(':matricule/details')
+  async findOne(@Param('matricule') matricule: string): Promise<ResponseData> {
     try {
-      const admin = this.adminService.findOne(id);
+      const admin_recup = await this.adminService.findAdminByMat(matricule);
       return ResponseBody.success({
-        data: admin,
-        message: `les utilisateurs ont ete cree avec succes`,
+        data: admin_recup,
+        message: `Details de l\'utilisateur`,
       });
     } catch (error) {
       return ResponseBody.error(
         error,
-        'Erreur de la recuperation de utilisateur',
+        "Erreur de la recuperation de l'utilisateur",
       );
     }
   }
 
-  @Put(':id')
+  @Put(':matricule/update')
   async update(
-    @Param('id') id: string,
+    @Param('matricule') matricule: string,
     @Body() updateAdminDto: UpdateAdminDto,
-  ): Promise<ResponseBody> {
+  ): Promise<ResponseData> {
     try {
-      const adminExist = await this.adminService.findOne(id);
+      const adminExist = await this.adminService.findAdminByMat(matricule);
       if (!adminExist) {
         return ResponseBody.notFound(`Cet utilisateur n'existe pas`);
       }
 
-      const { email } = updateAdminDto;
+      const { email, tel, role } = updateAdminDto;
       const adminExistEmail = await this.adminService.findAdminByEmail(email);
-      console.log(!adminExistEmail);
-
       if (adminExistEmail) {
-        return ResponseBody.conflict(`Cet email existe deja`);
+        if (adminExistEmail.email !== adminExist.email) {
+          return ResponseBody.conflict(`Cet email existe deja`);
+        }
       }
 
+      const adminExistTel = await this.adminService.findAdminByTel(tel);
+      if (adminExistTel) {
+        if (adminExistTel.tel !== adminExist.tel) {
+          return ResponseBody.conflict(`Cet numero de telephone existe deja`);
+        }
+      }
+
+      const roleExist = await this.roleService.findRoleByCode(role);
+      if (!role) {
+        return ResponseBody.notFound(`Ce role n'existe pas !`);
+      }
+      const body = {
+        ...updateAdminDto,
+        role: roleExist._id
+      };
+
       const updateAdmin: Admin = await this.adminService.update(
-        id,
-        updateAdminDto,
+        adminExist._id,
+        body,
       );
       return ResponseBody.success({
         data: updateAdmin,
@@ -133,12 +152,12 @@ export class AdminController {
     }
   }
 
-  @Delete(':id')
-  async remove(@Param('id') id: string): Promise<ResponseBody> {
+  @Delete(':matricule/delete')
+  async remove(@Param('matricule') matricule: string): Promise<ResponseData> {
     try {
-      const adminExist = await this.adminService.findOne(id);
+      const adminExist = await this.adminService.findAdminByMat(matricule);
       if (adminExist) {
-        const deleteAdmin = await this.adminService.remove(id);
+        const deleteAdmin = await this.adminService.remove(adminExist._id);
         return ResponseBody.success({
           data: deleteAdmin,
           message: `L'utilisateur admin a ete supprime avec succes  :) `,

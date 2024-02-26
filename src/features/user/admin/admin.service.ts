@@ -22,7 +22,24 @@ export class AdminService {
 
   async findAll(): Promise<Admin[]> {
     try {
-      const recupeAllUser = this.adminModel.find().exec();
+      const recupeAllUser = this.adminModel.aggregate([
+        {
+          $lookup:{
+            from:'roles',
+            localField: 'role',
+            foreignField:'_id',
+            as: 'role'
+          }
+
+        },
+        {
+          $unwind :{
+            path: '$role',
+            preserveNullAndEmptyArrays: true
+          }
+        }
+
+      ])
       return recupeAllUser;
     } catch (error) {
       throw new Error(error);
@@ -31,8 +48,8 @@ export class AdminService {
 
   async findOne(id: string): Promise<Admin | null> {
     try {
-      const findOneUser = await this.adminModel.findById(id).exec();
-      return findOneUser;
+
+      return this.adminModel.findById(id).exec();
     } catch (error) {
       throw new Error(error);
     }

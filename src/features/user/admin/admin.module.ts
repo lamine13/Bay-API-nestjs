@@ -4,7 +4,7 @@ import { AdminController } from './admin.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AdminSchema } from './entities/admin.entity';
 import { RoleModule } from '../role/role.module';
-import { RoleService } from '../role/role.service';
+import { GenerateCodeMatricule } from 'src/utils/generate/generate_matric';
 
 @Module({
   imports: [
@@ -18,6 +18,6 @@ import { RoleService } from '../role/role.service';
     
   ],
   controllers: [AdminController],
-  providers: [AdminService],
+  providers: [AdminService,GenerateCodeMatricule],
 })
 export class AdminModule {}

@@ -12,21 +12,30 @@ import { CreateRoleDto, RoleFields } from './dto/role.dto';
 import { UpdateRoleDto } from './dto/role.dto';
 import { Role } from './entities/role.entity';
 import { ResponseBody, ResponseData } from 'src/utils/response-body';
+import { GenerateCodeRole } from 'src/utils/generate/generate_code';
 
-@Controller('role')
+@Controller('users/roles')
 export class RoleController {
-  constructor(private readonly roleService: RoleService) {}
-
-  @Post()
+  constructor(
+    private readonly roleService: RoleService,
+    private readonly generateCodRole: GenerateCodeRole,
+  ) {}
+  @Post('store')
   async create(@Body() createRoleDto: CreateRoleDto): Promise<ResponseData> {
     try {
       const { name } = createRoleDto;
       const roleExist = await this.roleService.findRoleByName(name);
+      const roleserv = this.generateCodRole.generate();
+
       if (roleExist) {
         return ResponseBody.conflict(`Le role ${name} existe deja `);
       }
-      const newRole: Role = await this.roleService.create(createRoleDto);
-      return ResponseBody.success({
+      const body = {
+        ...createRoleDto,
+        code: roleserv,
+      };
+      const newRole: Role = await this.roleService.create(body);
+      return ResponseBody.creation({
         data: newRole,
         message: `le role ${name} a ete cree avec succes`,
       });
@@ -56,17 +65,18 @@ export class RoleController {
     }
   }
 
-  @Get(':id')
-  async findOne(@Param('id') id: string): Promise<ResponseData> {
+  @Get(':code/details')
+  async findOne(@Param('code') code: string): Promise<ResponseData> {
     try {
-      const role = await this.roleService.findOne(id);
+      const role = await this.roleService.findRoleByCode(code);
+
       if (role) {
         return ResponseBody.success({
           data: new RoleFields(role),
           message: `details role ${role.name}`,
         });
       }
-      return ResponseBody.notFound(`le role ${id} n'existe pas`);
+      return ResponseBody.notFound(`le role ${code} n'existe pas`);
     } catch (error) {
       return ResponseBody.error(
         error,
@@ -75,24 +85,24 @@ export class RoleController {
     }
   }
 
-  @Put(':id')
+  @Put(':code/update')
   async update(
-    @Param('id') id: string,
+    @Param('code') code: string,
     @Body() updateRoleDto: UpdateRoleDto,
   ): Promise<ResponseData> {
     try {
-      const roleExist = await this.roleService.findOne(id);
+      const roleExist = await this.roleService.findRoleByCode(code);
       if (!roleExist) {
-        return ResponseBody.notFound(`le role ${id} n'existe pas`);
+        return ResponseBody.notFound(`le role ${code} n'existe pas`);
       }
       const { name } = updateRoleDto;
 
       const roleExistName = await this.roleService.findRoleByName(name);
 
       if (roleExistName) {
-        return ResponseBody.conflict(`le role ${id} n'existe deja`);
+        return ResponseBody.conflict(`le role ${code} n'existe deja`);
       }
-      const newRole: Role = await this.roleService.update(id, updateRoleDto);
+      const newRole: Role = await this.roleService.update(roleExist._id, updateRoleDto);
       return ResponseBody.success({
         data: newRole,
         message: `le role ${name} a ete MAJ avec succes`,
@@ -102,12 +112,12 @@ export class RoleController {
     }
   }
 
-  @Delete(':id')
-  async remove(@Param('id') id: string): Promise<ResponseData> {
+  @Delete(':code/delete')
+  async remove(@Param('code') code: string): Promise<ResponseData> {
     try {
-      const roleExist = await this.roleService.findOne(id);
+      const roleExist = await this.roleService.findRoleByCode(code);
       if (roleExist) {
-        const deleteRole = await this.roleService.remove(id);
+        const deleteRole = await this.roleService.remove(roleExist._id);
 
         return ResponseBody.success({
           data: deleteRole,

@@ -3,11 +3,15 @@ import { HydratedDocument } from 'mongoose';
 
 export type RoleDocument = HydratedDocument<Role>;
 
-@Schema()
+@Schema({timestamps:true})
 export class Role {
-  [x: string]: any;
   @Prop({ required: true, unique: true })
   name: string;
+  @Prop({ required: true, unique: true })
+  code: string;
+  _id: any;
+  
+
 }
 
 export const RoleSchema = SchemaFactory.createForClass(Role);

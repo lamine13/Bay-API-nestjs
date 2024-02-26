@@ -41,6 +41,13 @@ export class RoleService {
       throw new Error(error);
     }
   }
+  async findRoleByCode(code: string): Promise<Role | null> {
+    try {
+      return this.roleModel.findOne({ code }).exec();
+    } catch (error) {
+      throw new Error(error);
+    }
+  }
 
   async update(id: string, updateRoleDto: UpdateRoleDto): Promise<Role | null> {
     try {

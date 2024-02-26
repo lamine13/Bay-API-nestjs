@@ -14,8 +14,9 @@ export class UpdateRoleDto {
 }
 export class RoleFields {
   name: string;
-
+  code:string;
   constructor(role: Role) {
     this.name = role.name;
+    this.code =role.code;
   }
 }

@@ -1,13 +1,19 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import mongoose, { HydratedDocument } from 'mongoose';
+import mongoose, {Document } from 'mongoose';
 import { Role } from '../../role/entities/role.entity';
-import { UpdateAdminDto } from '../dto/admin.dto';
+// import { AdminService } from '../admin.service';
 
-export type AdminDocument = HydratedDocument<Admin>;
+// export type AdminDocument = HydratedDocument<Admin>;
 
-@Schema({ timestamps: true })
-export class Admin {
+// @Schema({ timestamps: true })
+// export class Admin {
  
+
+// }
+
+// export const AdminSchema = SchemaFactory.createForClass(Admin);
+@Schema({timestamps: true})
+export class Admin extends Document {
   @Prop({ required: true })
   name: string;
 
@@ -35,13 +41,18 @@ export class Admin {
   @Prop()
   avatar: string;
 
+  @Prop()
+  birthday: Date;
+
   @Prop({ required: true ,unique: true})
   tel: string;
+
+  @Prop({ required: true ,unique: true})
+  gender: string;
 
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Role', required: true })
   role: Role;
   _id: any;
 
 }
-
-export const AdminSchema = SchemaFactory.createForClass(Admin);
+export const AdminSchema =SchemaFactory.createForClass(Admin)

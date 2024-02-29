@@ -1,6 +1,14 @@
-import { IsEmail, IsNotEmpty, IsPhoneNumber, IsString } from 'class-validator';
+import {
+  IsDate,
+  IsEmail,
+  IsNotEmpty,
+  IsPhoneNumber,
+  IsString,
+} from 'class-validator';
 import { Admin } from '../entities/admin.entity';
 import { RoleFields } from '../../role/dto/role.dto';
+import { Type } from 'class-transformer';
+import * as moment from 'moment';
 
 export class CreateAdminDto {
   @IsString({ message: 'le nom  doit etre une chaine de caracteres' })
@@ -32,12 +40,23 @@ export class CreateAdminDto {
 
   @IsNotEmpty({ message: "le role de l'utilisateur est requis " })
   readonly role: string;
+
+  @IsNotEmpty({ message: "le genre de l'utilisateur est requis " })
+  readonly gender: string;
+
+  @IsNotEmpty({ message: 'la date de naissance  est requis ' })
+  @Type(() => Date)
+  @IsDate()
+  readonly birthday: Date;
 }
 
 export class UpdateAdminDto {
   @IsString({ message: 'le nom  doit etre une chaine de caracteres' })
   @IsNotEmpty({ message: 'le nom est requis' })
   readonly name: string;
+
+  @IsNotEmpty({ message: "le genre de l'utilisateur est requis " })
+  readonly gender: string;
 
   @IsString({ message: 'le prenom doit etre une chaine de caracteres' })
   @IsNotEmpty({ message: 'le prenom est requis' })
@@ -64,6 +83,11 @@ export class UpdateAdminDto {
 
   @IsNotEmpty({ message: "le role de l'utilisateur est requis " })
   readonly role: string;
+
+  @IsNotEmpty({ message: 'la date de naissance  est requis ' })
+  @Type(() => Date)
+  @IsDate({ message: 'Ce champs dois etre de type date' })
+  readonly birthday: Date;
 }
 export class AdminFields {
   name: string;
@@ -77,6 +101,8 @@ export class AdminFields {
   avatar: string;
   tel: string;
   role: object;
+  birthday: string;
+  gender: string;
   constructor(admin: Admin) {
     this.name = admin.name;
     this.firstname = admin.firstName;
@@ -88,6 +114,8 @@ export class AdminFields {
     this.identify = admin.identify;
     this.avatar = admin.avatar;
     this.tel = admin.tel;
+    this.gender = admin.gender;
+    this.birthday = moment(admin.birthday).format('YYYY-MM-DD');
     this.role = admin.role ? new RoleFields(admin.role) : null;
   }
 }

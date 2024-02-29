@@ -27,6 +27,14 @@ export class ResponseBody {
     };
     return response;
   }
+  static creation(param: Params): ResponseData {
+    const response: ResponseData = {
+      message: param.message,
+      status: HttpStatus.CREATED,
+      data: param.data,
+    };
+    return response;
+  }
   static notFound(message: string): ResponseData {
     const response: ResponseData = {
       message: message,

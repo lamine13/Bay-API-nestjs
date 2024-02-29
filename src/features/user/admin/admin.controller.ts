@@ -15,6 +15,7 @@ import { Admin } from './entities/admin.entity';
 import { ResponseData } from '../../../utils/response-body';
 import { RoleService } from '../role/role.service';
 import { GenerateCodeMatricule } from 'src/utils/generate/generate_matric';
+import * as moment from 'moment';
 
 @Controller('users/admins')
 export class AdminController {
@@ -27,32 +28,37 @@ export class AdminController {
   @Post('store')
   async create(@Body() createAdminDto: CreateAdminDto): Promise<ResponseData> {
     try {
-      const userExisteTel = await this.adminService.findAdminByTel(
-        createAdminDto.tel,
-      );
+      const { tel, email, role, gender, birthday } = createAdminDto;
+
+      const userExisteTel = await this.adminService.findAdminByTel(tel);
       if (userExisteTel) {
         return ResponseBody.conflict(`Ce numero de telephone existe deja !`);
       }
 
-      const userExisteEmail = await this.adminService.findAdminByEmail(
-        createAdminDto.email,
-      );
+      const userExisteEmail = await this.adminService.findAdminByEmail(email);
       if (userExisteEmail) {
         return ResponseBody.conflict(`Cet email existe deja !`);
       }
 
-      const role = await this.roleService.findRoleByCode(createAdminDto.role);
-      if (!role) {
+      const roleExist = await this.roleService.findRoleByCode(role);
+      if (!roleExist) {
         return ResponseBody.notFound(`Ce role n'existe pas !`);
       }
 
-      const matricul = this.generateCodeMatricule.generate('admin');
+      const matricul = this.generateCodeMatricule.generate(
+        gender,
+        birthday,
+        tel,
+      );
 
       const body = {
         ...createAdminDto,
-        role: role._id,
+        // birthday: moment(createAdminDto.birthday).format('YYYY-MM-DD'),
+        role: roleExist._id,
         matricule: matricul,
       };
+      console.log(body);
+
       const newAdmin: Admin = await this.adminService.create(body);
 
       return ResponseBody.creation({
@@ -70,7 +76,7 @@ export class AdminController {
   @Get()
   async findAll(): Promise<ResponseData> {
     try {
-      const admins = await this.adminService.findAll();      
+      const admins = await this.adminService.findAll();
       const responseData = admins.map((value) => new AdminFields(value));
 
       return ResponseBody.success({
@@ -116,7 +122,7 @@ export class AdminController {
       const adminExistEmail = await this.adminService.findAdminByEmail(email);
       if (adminExistEmail) {
         if (adminExistEmail.email !== adminExist.email) {
-          return ResponseBody.conflict(`Cet email existe deja`);
+          return ResponseBody.conflict(`Ce email existe deja`);
         }
       }
 
@@ -133,7 +139,7 @@ export class AdminController {
       }
       const body = {
         ...updateAdminDto,
-        role: roleExist._id
+        role: roleExist._id,
       };
 
       const updateAdmin: Admin = await this.adminService.update(

@@ -3,7 +3,6 @@ import {
   Get,
   Post,
   Body,
-  Patch,
   Param,
   Delete,
   Put,
@@ -15,7 +14,6 @@ import { Admin } from './entities/admin.entity';
 import { ResponseData } from '../../../utils/response-body';
 import { RoleService } from '../role/role.service';
 import { GenerateCodeMatricule } from 'src/utils/generate/generate_matric';
-import * as moment from 'moment';
 
 @Controller('users/admins')
 export class AdminController {
@@ -53,7 +51,6 @@ export class AdminController {
 
       const body = {
         ...createAdminDto,
-        // birthday: moment(createAdminDto.birthday).format('YYYY-MM-DD'),
         role: roleExist._id,
         matricule: matricul,
       };

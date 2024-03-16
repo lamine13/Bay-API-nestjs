@@ -1,0 +1,13 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\src",
+    "\\src\\core",
+    "\\src\\features",
+    "\\src\\features\\user",
+    "\\src\\features\\user\\admin",
+    "\\src\\utils"
+  ],
+  "SelectedNode": "\\src\\features\\user\\admin\\admin.controller.ts",
+  "PreviewInSolutionExplorer": false
+}

@@ -13,6 +13,7 @@ import { UpdateRoleDto } from './dto/role.dto';
 import { Role } from './entities/role.entity';
 import { ResponseBody, ResponseData } from 'src/utils/response-body';
 import { GenerateCodeRole } from 'src/utils/generate/generate_code';
+import { I18n, I18nContext } from 'nestjs-i18n';
 
 @Controller('users/roles')
 export class RoleController {
@@ -43,6 +44,10 @@ export class RoleController {
       return ResponseBody.error(error, "Erreur lors de la creation d'un role");
     }
   }
+  @Get()
+  async getHello(@I18n() i18n: I18nContext) {
+    return await i18n.t('test.HELLO');
+  }
 
   @Get()
   async findAll(): Promise<{
@@ -57,7 +62,7 @@ export class RoleController {
         data: responses,
         message: `La liste des roles recuperer avec succes`,
       });
-    } catch (error) {
+    } catch (error) {777315892
       return ResponseBody.error(
         error,
         'Erreur lors de la recuperation des roles',
@@ -102,7 +107,10 @@ export class RoleController {
       if (roleExistName) {
         return ResponseBody.conflict(`le role ${code} n'existe deja`);
       }
-      const newRole: Role = await this.roleService.update(roleExist._id, updateRoleDto);
+      const newRole: Role = await this.roleService.update(
+        roleExist._id,
+        updateRoleDto,
+      );
       return ResponseBody.success({
         data: newRole,
         message: `le role ${name} a ete MAJ avec succes`,

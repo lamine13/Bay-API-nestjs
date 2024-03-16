@@ -1,13 +1,5 @@
 const charAfterPrefix = 10;
 export class GenerateCodeMatricule {
-  // generate(prefix?:string): string {
-  //   const randomString = Math.random().toString(10).substring(charAfterPrefix);
-  //   if(prefix) {
-  //     return  `matricule${randomString}${prefix}`;
-  //   }
-  //   return randomString;
-  // }
-
   generate(gender: string, dateBirthday: Date, number: string): string {
     const codeGender =
       gender.toLowerCase() === 'masculine'

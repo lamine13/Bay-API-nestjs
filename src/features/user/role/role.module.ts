@@ -8,10 +8,9 @@ import { GenerateCodeRole } from 'src/utils/generate/generate_code';
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: Role.name, schema: RoleSchema }]),
-
   ],
   controllers: [RoleController],
-  providers: [RoleService,GenerateCodeRole],
+  providers: [RoleService, GenerateCodeRole],
   exports: [RoleService],
 })
 export class RoleModule {}

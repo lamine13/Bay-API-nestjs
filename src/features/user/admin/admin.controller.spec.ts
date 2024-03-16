@@ -7,6 +7,7 @@ describe('AdminController', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
+      imports: [],
       controllers: [AdminController],
       providers: [AdminService],
     }).compile();

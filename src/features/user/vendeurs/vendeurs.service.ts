@@ -1,26 +1,76 @@
 import { Injectable } from '@nestjs/common';
-import { CreateVendeurDto } from './dto/create-vendeur.dto';
-import { UpdateVendeurDto } from './dto/update-vendeur.dto';
+import { UpdateVendeurDto, CreateVendeurDto } from './dto/vendeur.dto';
+import { Vendeur } from './entities/vendeur.entity';
+import { Model } from 'mongoose';
+import { InjectModel } from '@nestjs/mongoose';
 
 @Injectable()
 export class VendeursService {
-  create(createVendeurDto: CreateVendeurDto) {
-    return 'This action adds a new vendeur';
+  constructor(
+    @InjectModel(Vendeur.name) private vendeurModel: Model<Vendeur>,
+  ) {}
+  async create(createVendeurDto: CreateVendeurDto): Promise<Vendeur> {
+    try {
+      const vendeurCreate = new this.vendeurModel(createVendeurDto);
+
+      return vendeurCreate.save();
+    } catch (error) {
+      throw new Error(error);
+    }
   }
 
-  findAll() {
-    return `This action returns all vendeurs`;
+  async findAll(): Promise<Vendeur[]> {
+    try {
+      const recupeAllVendeur = this.vendeurModel.aggregate([
+        {
+          $lookup: {
+            from: 'roles',
+            localField: 'role',
+            foreignField: '_id',
+            as: 'role',
+          },
+        },
+        {
+          $unwind: {
+            path: '$role',
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+      ]);
+      return recupeAllVendeur;
+    } catch (error) {
+      throw new Error(error);
+    }
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} vendeur`;
+  async findOne(id: number): Promise<Vendeur> {
+    try {
+      const getUniqueVendeur = this.vendeurModel.findById(id).exec();
+      return getUniqueVendeur;
+    } catch (error) {}
   }
 
-  update(id: number, updateVendeurDto: UpdateVendeurDto) {
-    return `This action updates a #${id} vendeur`;
+  async update(
+    id: number,
+    updateVendeurDto: UpdateVendeurDto,
+  ): Promise<Vendeur | null> {
+    try {
+      const updateVendeur = this.vendeurModel.findByIdAndUpdate(
+        id,
+        updateVendeurDto,
+      );
+      return updateVendeur;
+    } catch (error) {
+      throw new Error(error);
+    }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} vendeur`;
+  async remove(id: number): Promise<Vendeur | null> {
+    try {
+      const deleteVendeur = this.vendeurModel.findByIdAndDelete(id);
+      return deleteVendeur;
+    } catch (error) {
+      throw new Error(error);
+    }
   }
 }

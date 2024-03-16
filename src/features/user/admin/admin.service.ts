@@ -3,13 +3,12 @@ import { CreateAdminDto, UpdateAdminDto } from './dto/admin.dto';
 import { Admin } from './entities/admin.entity';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { Role } from '../role/entities/role.entity';
 
 @Injectable()
 export class AdminService {
   constructor(
-    @InjectModel(Admin.name) private readonly adminModel: Model<Admin>,
-
+    @InjectModel(Admin.name)
+    private readonly adminModel: Model<Admin>,
   ) {}
   async create(createAdminDto: CreateAdminDto): Promise<Admin> {
     try {
@@ -24,22 +23,20 @@ export class AdminService {
     try {
       const recupeAllUser = this.adminModel.aggregate([
         {
-          $lookup:{
-            from:'roles',
+          $lookup: {
+            from: 'roles',
             localField: 'role',
-            foreignField:'_id',
-            as: 'role'
-          }
-
+            foreignField: '_id',
+            as: 'role',
+          },
         },
         {
-          $unwind :{
+          $unwind: {
             path: '$role',
-            preserveNullAndEmptyArrays: true
-          }
-        }
-
-      ])
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+      ]);
       return recupeAllUser;
     } catch (error) {
       throw new Error(error);
@@ -48,14 +45,16 @@ export class AdminService {
 
   async findOne(id: string): Promise<Admin | null> {
     try {
-
       return this.adminModel.findById(id).exec();
     } catch (error) {
       throw new Error(error);
     }
   }
 
-  async update(id: string, updateAdminDto: UpdateAdminDto): Promise<Admin | null> {
+  async update(
+    id: string,
+    updateAdminDto: UpdateAdminDto,
+  ): Promise<Admin | null> {
     try {
       const findUserUpdate = await this.adminModel.findByIdAndUpdate(
         id,
@@ -78,7 +77,7 @@ export class AdminService {
   }
   async findAdminByEmail(email: string): Promise<Admin | null> {
     try {
-      return  this.adminModel.findOne({email}).exec();
+      return this.adminModel.findOne({ email }).exec();
     } catch (error) {
       throw new Error(error);
     }
